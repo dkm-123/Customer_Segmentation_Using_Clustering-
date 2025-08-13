@@ -12,6 +12,12 @@ df = df[(df['Quantity'] > 0) & (df['UnitPrice'] > 0)]
 # 3. Convert InvoiceDate to datetime (assume day comes first)
 df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'], dayfirst=True, errors='coerce')
 
+# Filter: Keep only rows that are numeric StockCodes AND not 'POST' + 'POSTAGE'
+df = df[
+    (df['StockCode'].astype(str).str.match(r'^\d+$')) & 
+    ~((df['StockCode'].str.upper() == 'POST') & (df['Description'].str.upper() == 'POSTAGE'))
+]
+
 # 4. Remove rows where InvoiceDate failed to parse
 df = df.dropna(subset=['InvoiceDate'])
 
