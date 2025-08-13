@@ -3,34 +3,34 @@ import pandas as pd
 # Load dataset
 df = pd.read_csv("Customer_dataset.csv")
 
-# 1. Remove rows with missing values in important columns
+#Remove rows with missing values
 df.dropna(subset=['CustomerID', 'Description'], inplace=True)
 
-# 2. Remove rows with negative or zero Quantity & UnitPrice
+#Remove rows with negative or zero Quantity & UnitPrice
 df = df[(df['Quantity'] > 0) & (df['UnitPrice'] > 0)]
 
-# 3. Convert InvoiceDate to datetime (assume day comes first)
+#Convert InvoiceDate to datetime
 df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'], dayfirst=True, errors='coerce')
 
-# Filter: Keep only rows that are numeric StockCodes AND not 'POST' + 'POSTAGE'
+#Filter: Keep only rows that are numeric StockCodes AND not 'POST' + 'POSTAGE'
 df = df[
     (df['StockCode'].astype(str).str.match(r'^\d+$')) & 
     ~((df['StockCode'].str.upper() == 'POST') & (df['Description'].str.upper() == 'POSTAGE'))
 ]
 
-# 4. Remove rows where InvoiceDate failed to parse
+#Remove rows where InvoiceDate failed to parse
 df = df.dropna(subset=['InvoiceDate'])
 
-# 5. Format InvoiceDate as DD-MM-YYYY for output
+#Format InvoiceDate as DD-MM-YYYY for output
 df['InvoiceDate'] = df['InvoiceDate'].dt.strftime('%d-%m-%Y')
 
-# 6. Remove duplicates if any
+#Remove duplicates if any
 df.drop_duplicates(inplace=True)
 
-# 7. Reset index after cleaning
+#Reset index after cleaning
 df.reset_index(drop=True, inplace=True)
 
-# 8. Save cleaned dataset
+#Save cleaned dataset
 df.to_csv("Customer_clean.csv", index=False)
 
 print("✅ Cleaning complete! Cleaned file saved as 'Customer_clean.csv'")
