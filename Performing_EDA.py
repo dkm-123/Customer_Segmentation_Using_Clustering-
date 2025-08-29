@@ -3,8 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy import stats
+import os
 
-#Load Dataset
+# Create directory for saving plots
+plot_dir = "eda_charts"
+os.makedirs(plot_dir, exist_ok=True)
+
+# Load Dataset
 df = pd.read_csv("Customer_clean.csv")
 pd.set_option('display.max_columns', None)
 
@@ -13,61 +18,64 @@ print("\nData Types:\n", df.dtypes)
 print("\nFirst 5 Rows:\n", df.head())
 print("\nSummary Statistics:\n", df.describe())
 
-#Missing Values
+# Missing Values
 plt.figure(figsize=(10, 5))
 sns.heatmap(df.isnull(), cbar=False, cmap='viridis')
 plt.title("Missing Values Heatmap")
+plt.savefig(f"{plot_dir}/missing_values_heatmap.png", dpi=300, bbox_inches="tight")
 plt.show()
 
 missing_percent = df.isnull().sum() / len(df) * 100
 print("\nMissing Values Percentage:\n", missing_percent[missing_percent > 0])
 
-#Duplicates
+# Duplicates
 print("\nNumber of duplicate rows:", df.duplicated().sum())
-# Optionally drop duplicates
-# df = df.drop_duplicates()
 
-#Numeric Columns Analysis
+# Numeric Columns Analysis
 numeric_cols = df.select_dtypes(include=[np.number]).columns
 
-#Histograms
+# Histograms
 df[numeric_cols].hist(figsize=(12, 8), bins=30, color='skyblue', edgecolor='black')
 plt.suptitle("Histograms for Numeric Columns")
+plt.savefig(f"{plot_dir}/numeric_histograms.png", dpi=300, bbox_inches="tight")
 plt.show()
 
-#Boxplots & Outliers
+# Boxplots & Outliers
 for col in numeric_cols:
     plt.figure(figsize=(6, 4))
     sns.boxplot(y=df[col], color='lightgreen')
     plt.title(f"Boxplot - {col}")
+    plt.savefig(f"{plot_dir}/boxplot_{col}.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-    #Outlier detection using z-score
+    # Outlier detection using z-score
     z_scores = np.abs(stats.zscore(df[col].dropna()))
     outliers = np.where(z_scores > 3)
     print(f"Number of outliers in {col}: {len(outliers[0])}")
 
-#Correlation Heatmap
+# Correlation Heatmap
 plt.figure(figsize=(10, 8))
 sns.heatmap(df[numeric_cols].corr(), annot=True, cmap='coolwarm')
 plt.title("Correlation Heatmap")
+plt.savefig(f"{plot_dir}/correlation_heatmap.png", dpi=300, bbox_inches="tight")
 plt.show()
 
-#Categorical Columns Analysis
+# Categorical Columns Analysis
 categorical_cols = df.select_dtypes(include=['object']).columns
 
 for col in categorical_cols:
     plt.figure(figsize=(8, 4))
     sns.countplot(y=col, data=df, order=df[col].value_counts().index[:10], palette='viridis')
     plt.title(f"Top 10 Categories - {col}")
+    plt.savefig(f"{plot_dir}/countplot_{col}.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-#Time-based Trends (if date exists)
+# Time-based Trends (if date exists)
 if 'InvoiceDate' in df.columns:
     df['InvoiceDate'] = pd.to_datetime(df['InvoiceDate'], errors='coerce')
     df['InvoiceMonth'] = df['InvoiceDate'].dt.to_period('M').astype(str)
 
-    #Monthly Quantity Sold
+    # Monthly Quantity Sold
     monthly_quantity = df.groupby('InvoiceMonth')['Quantity'].sum()
     plt.figure(figsize=(12, 6))
     sns.lineplot(x=monthly_quantity.index, y=monthly_quantity.values, marker='o')
@@ -75,9 +83,10 @@ if 'InvoiceDate' in df.columns:
     plt.title("Monthly Quantity Sold")
     plt.xlabel("Month")
     plt.ylabel("Total Quantity")
+    plt.savefig(f"{plot_dir}/monthly_quantity.png", dpi=300, bbox_inches="tight")
     plt.show()
 
-    #Monthly Revenue (if UnitPrice exists)
+    # Monthly Revenue
     if 'UnitPrice' in df.columns:
         df['Revenue'] = df['Quantity'] * df['UnitPrice']
         monthly_revenue = df.groupby('InvoiceMonth')['Revenue'].sum()
@@ -87,6 +96,8 @@ if 'InvoiceDate' in df.columns:
         plt.title("Monthly Revenue")
         plt.xlabel("Month")
         plt.ylabel("Total Revenue")
+        plt.savefig(f"{plot_dir}/monthly_revenue.png", dpi=300, bbox_inches="tight")
         plt.show()
 
 print("\nAutomated EDA Completed ✅")
+
